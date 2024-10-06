@@ -60,37 +60,30 @@ class Orderbook(object):
 			bookOrder = None
 			if incomingOrder.side==Side.BUY:
 				bookOrder = self.asks.pop(0)
-				buyer_id = incomingOrder.trader_id
-				seller_id = bookOrder.trader_id
 			else:
 				bookOrder = self.bids.pop(0)
-				buyer_id = bookOrder.trader_id
-				seller_id = incomingOrder.trader_id
 
 			if incomingOrder.remainingToFill == bookOrder.remainingToFill:  # if the same volume
 				volume = incomingOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
-				self.trades.append(trade)
+				self.trades.append(Trade(
+					incomingOrder.side, bookOrder.price, volume, incomingOrder.order_id, bookOrder.order_id))
 				break
 
 			elif incomingOrder.remainingToFill > bookOrder.remainingToFill:  # incoming has greater volume
 				volume = bookOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
-				self.trades.append(trade)
+				self.trades.append(Trade(
+					incomingOrder.side, bookOrder.price, volume, incomingOrder.order_id, bookOrder.order_id))
 
 			elif incomingOrder.remainingToFill < bookOrder.remainingToFill:  # book has greater volume
 				volume = incomingOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
-				self.trades.append(trade)
+				self.trades.append(Trade(
+					incomingOrder.side, bookOrder.price, volume, incomingOrder.order_id, bookOrder.order_id))
 
 				if bookOrder.side==Side.SELL:
 					self.asks.add(bookOrder)
