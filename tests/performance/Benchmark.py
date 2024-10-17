@@ -10,7 +10,7 @@ import secrets
 
 # Benchmark
 OB = Orderbook()
-numOrders = 10**1
+numOrders = 10**4
 orders = []
 for n in range(numOrders):
 	if bool(getrandbits(1)):
