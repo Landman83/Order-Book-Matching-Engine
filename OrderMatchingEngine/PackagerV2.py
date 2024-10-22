@@ -4,6 +4,7 @@ import os
 from eth_utils import to_checksum_address
 from web3 import Web3
 import time
+import json
 
 # Add the parent directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -78,31 +79,43 @@ def create_settlement_ready_trades(orderbook, cash_token, security_token, fee_re
     
     return settlement_ready_trades
 
+def serialize_trade(trade):
+    return {
+        "makerToken": trade.makerToken,
+        "takerToken": trade.takerToken,
+        "makerAmount": str(trade.makerAmount),
+        "takerAmount": str(trade.takerAmount),
+        "maker": trade.maker,
+        "taker": trade.taker,
+        "sender": trade.sender,
+        "feeRecipient": trade.feeRecipient,
+        "pool": trade.pool.hex(),
+        "expiration": trade.expiration,
+        "salt": str(trade.salt),
+        "makerIsBuyer": trade.makerIsBuyer
+    }
+
+def serialize_settlement_ready_trades(settlement_ready_trades):
+    return [serialize_trade(trade) for trade in settlement_ready_trades]
+
 # Example usage:
-orderbook = Orderbook()
-# ... populate orderbook with orders and execute trades ...
+if __name__ == "__main__":
+    orderbook = Orderbook()
+    # ... populate orderbook with orders and execute trades ...
 
-# Set Ethereum addresses for tokens and fee recipient
-cash_token = "0x1234567890123456789012345678901234567890"  # Example Ethereum address for cash token
-security_token = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"  # Example Ethereum address for security token
-fee_recipient = "0xfedc000000000000000000000000000000000000"  # Example Ethereum address for fee recipient
+    # Set Ethereum addresses for tokens and fee recipient
+    cash_token = "0x1234567890123456789012345678901234567890"  # Example Ethereum address for cash token
+    security_token = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"  # Example Ethereum address for security token
+    fee_recipient = "0xfedc000000000000000000000000000000000000"  # Example Ethereum address for fee recipient
 
-settlement_ready_trades = create_settlement_ready_trades(orderbook, cash_token, security_token, fee_recipient)
+    settlement_ready_trades = create_settlement_ready_trades(orderbook, cash_token, security_token, fee_recipient)
 
-# Print the settlement ready trades
-for i, trade in enumerate(settlement_ready_trades, 1):
-    print(f"Settlement Ready Trade {i}:")
-    print(f"  Maker Token: {trade.makerToken}")
-    print(f"  Taker Token: {trade.takerToken}")
-    print(f"  Maker Amount: {trade.makerAmount}")
-    print(f"  Taker Amount: {trade.takerAmount}")
-    print(f"  Maker: {trade.maker}")
-    print(f"  Taker: {trade.taker}")
-    print(f"  Sender: {trade.sender}")
-    print(f"  Fee Recipient: {trade.feeRecipient}")
-    print(f"  Pool: {trade.pool.hex()}")
-    print(f"  Expiration: {trade.expiration}")
-    print(f"  Salt: {trade.salt}")
-    print(f"  Maker Is Buyer: {trade.makerIsBuyer}")
-    print()
+    # Serialize the settlement ready trades
+    serialized_trades = serialize_settlement_ready_trades(settlement_ready_trades)
 
+    # Print the serialized trades
+    print(json.dumps(serialized_trades, indent=2))
+
+    # Optionally, save the serialized trades to a file
+    with open('settlement_ready_trades.json', 'w') as f:
+        json.dump(serialized_trades, f, indent=2)
