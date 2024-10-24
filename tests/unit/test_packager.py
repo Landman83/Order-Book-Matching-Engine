@@ -6,6 +6,14 @@ from OrderMatchingEngine import Order, Orderbook, Side, LimitOrder
 from OrderMatchingEngine.PackagerV2 import create_settlement_ready_trades, serialize_settlement_ready_trades
 from random import getrandbits, randint
 import json
+import secrets
+
+def create_random_signature():
+    signature_type = 'EIP-712'
+    v = randint(27, 28)  # v is typically 27 or 28 for Ethereum signatures
+    r = secrets.token_bytes(32)  # 32 bytes for r
+    s = secrets.token_bytes(32)  # 32 bytes for s
+    return signature_type, v, r, s
 
 def test_serialization():
     # Create an orderbook and populate it with random orders
@@ -13,10 +21,14 @@ def test_serialization():
     numOrders = 10  # Reduced number of orders for quicker testing
     orders = []
     for n in range(numOrders):
-        if bool(getrandbits(1)):
-            orders.append(LimitOrder(n, Side.BUY, randint(1, 200), randint(1, 4)))
-        else:
-            orders.append(LimitOrder(n, Side.SELL, randint(1, 200), randint(1, 4)))
+        side = Side.BUY if bool(getrandbits(1)) else Side.SELL
+        size = randint(1, 200)
+        price = randint(1, 4)
+        signature_type, v, r, s = create_random_signature()
+        
+        order = LimitOrder(n, side, size, price)
+        order.set_signature(signature_type, v, r, s)
+        orders.append(order)
 
     # Process the orders
     for order in orders:
@@ -49,4 +61,3 @@ def test_serialization():
 
 if __name__ == "__main__":
     test_serialization()
-

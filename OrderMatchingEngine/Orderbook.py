@@ -62,17 +62,24 @@ class Orderbook(object):
 				bookOrder = self.asks.pop(0)
 				buyer_id = incomingOrder.trader_id
 				seller_id = bookOrder.trader_id
+				v_buyer, r_buyer, s_buyer = incomingOrder.v, incomingOrder.r, incomingOrder.s
+				v_seller, r_seller, s_seller = bookOrder.v, bookOrder.r, bookOrder.s
 			else:
 				bookOrder = self.bids.pop(0)
 				buyer_id = bookOrder.trader_id
 				seller_id = incomingOrder.trader_id
+				v_buyer, r_buyer, s_buyer = bookOrder.v, bookOrder.r, bookOrder.s
+				v_seller, r_seller, s_seller = incomingOrder.v, incomingOrder.r, incomingOrder.s
 
 			if incomingOrder.remainingToFill == bookOrder.remainingToFill:  # if the same volume
 				volume = incomingOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
 				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
+                              bookOrder.price, volume, buyer_id, seller_id,
+                              incomingOrder.signature_type,
+                              v_buyer, r_buyer, s_buyer,
+                              v_seller, r_seller, s_seller)
 				self.trades.append(trade)
 				break
 
@@ -81,7 +88,10 @@ class Orderbook(object):
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
 				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
+                              bookOrder.price, volume, buyer_id, seller_id,
+                              incomingOrder.signature_type,
+                              v_buyer, r_buyer, s_buyer,
+                              v_seller, r_seller, s_seller)
 				self.trades.append(trade)
 
 			elif incomingOrder.remainingToFill < bookOrder.remainingToFill:  # book has greater volume
@@ -89,7 +99,10 @@ class Orderbook(object):
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
 				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
-                              bookOrder.price, volume, buyer_id, seller_id)
+                              bookOrder.price, volume, buyer_id, seller_id,
+                              incomingOrder.signature_type,
+                              v_buyer, r_buyer, s_buyer,
+                              v_seller, r_seller, s_seller)
 				self.trades.append(trade)
 
 				if bookOrder.side==Side.SELL:

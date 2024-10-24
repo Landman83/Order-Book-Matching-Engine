@@ -16,7 +16,7 @@ from OrderMatchingEngine.Trade import Trade
 from OrderMatchingEngine import Side
 
 class SettlementReadyTrade:
-    def __init__(self, makerToken, takerToken, makerAmount, takerAmount, maker, taker, sender, feeRecipient, pool, expiration, salt, makerIsBuyer):
+    def __init__(self, makerToken, takerToken, makerAmount, takerAmount, maker, taker, sender, feeRecipient, pool, expiration, salt, makerIsBuyer, signature_type, buyer_v, buyer_r, buyer_s, seller_v, seller_r, seller_s):
         self.makerToken = makerToken
         self.takerToken = takerToken
         self.makerAmount = makerAmount
@@ -29,6 +29,13 @@ class SettlementReadyTrade:
         self.expiration = expiration
         self.salt = salt
         self.makerIsBuyer = makerIsBuyer
+        self.signature_type = signature_type
+        self.buyer_v = buyer_v
+        self.buyer_r = buyer_r
+        self.buyer_s = buyer_s
+        self.seller_v = seller_v
+        self.seller_r = seller_r
+        self.seller_s = seller_s
 
 def create_settlement_ready_trades(orderbook, cash_token, security_token, fee_recipient):
     settlement_ready_trades = []
@@ -72,7 +79,14 @@ def create_settlement_ready_trades(orderbook, cash_token, security_token, fee_re
             pool=Web3.to_bytes(hexstr='0x0000000000000000000000000000000000000000000000000000000000000000'),  # Zero bytes32
             expiration=int(time.time()) + 3600,  # Current time + 1 hour
             salt=Web3.to_int(Web3.keccak(text=str(time.time()))),  # Unique salt based on current time
-            makerIsBuyer=maker_is_buyer
+            makerIsBuyer=maker_is_buyer,
+            signature_type=trade.signature_type,
+            buyer_v=trade.v_buyer,
+            buyer_r=trade.r_buyer,
+            buyer_s=trade.s_buyer,
+            seller_v=trade.v_seller,
+            seller_r=trade.r_seller,
+            seller_s=trade.s_seller
         )
         
         settlement_ready_trades.append(settlement_ready_trade)
@@ -92,7 +106,14 @@ def serialize_trade(trade):
         "pool": trade.pool.hex(),
         "expiration": trade.expiration,
         "salt": str(trade.salt),
-        "makerIsBuyer": trade.makerIsBuyer
+        "makerIsBuyer": trade.makerIsBuyer,
+        "signature_type": trade.signature_type,
+        "buyer_v": trade.buyer_v,
+        "buyer_r": '0x' + trade.buyer_r.hex() if trade.buyer_r else None,
+        "buyer_s": '0x' + trade.buyer_s.hex() if trade.buyer_s else None,
+        "seller_v": trade.seller_v,
+        "seller_r": '0x' + trade.seller_r.hex() if trade.seller_r else None,
+        "seller_s": '0x' + trade.seller_s.hex() if trade.seller_s else None
     }
 
 def serialize_settlement_ready_trades(settlement_ready_trades):

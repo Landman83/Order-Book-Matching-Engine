@@ -7,16 +7,28 @@ from OrderMatchingEngine.PackagerV2 import create_settlement_ready_trades
 
 from random import getrandbits, randint
 import time
+import secrets
+
+def create_random_signature():
+    signature_type = 'EIP-712'
+    v = randint(27, 28)  # v is typically 27 or 28 for Ethereum signatures
+    r = secrets.token_bytes(32)  # 32 bytes for r
+    s = secrets.token_bytes(32)  # 32 bytes for s
+    return signature_type, v, r, s
 
 # Benchmark
 OB = Orderbook()
 numOrders = 10**4
 orders = []
 for n in range(numOrders):
-	if bool(getrandbits(1)):
-		orders.append(LimitOrder(n, Side.BUY, randint(1, 200), randint(1, 4)))
-	else:
-		orders.append(LimitOrder(n, Side.SELL, randint(1, 200), randint(1, 4)))
+	side = Side.BUY if bool(getrandbits(1)) else Side.SELL
+	size = randint(1, 200)
+	price = randint(1, 4)
+	signature_type, v, r, s = create_random_signature()
+	
+	order = LimitOrder(n, side, size, price)
+	order.set_signature(signature_type, v, r, s)
+	orders.append(order)
 
 start = time.time()
 for order in orders:
@@ -54,6 +66,13 @@ for i, trade in enumerate(settlement_ready_trades[:5], 1):
 	print(f"  Expiration: {trade.expiration}")
 	print(f"  Salt: {trade.salt}")
 	print(f"  Maker Is Buyer: {trade.makerIsBuyer}")
+	print(f"  Signature Type: {trade.signature_type}")
+	print(f"  Buyer v: {trade.buyer_v}")
+	print(f"  Buyer r: {trade.buyer_r.hex() if trade.buyer_r else 'None'}")
+	print(f"  Buyer s: {trade.buyer_s.hex() if trade.buyer_s else 'None'}")
+	print(f"  Seller v: {trade.seller_v}")
+	print(f"  Seller r: {trade.seller_r.hex() if trade.seller_r else 'None'}")
+	print(f"  Seller s: {trade.seller_s.hex() if trade.seller_s else 'None'}")
 
 if len(settlement_ready_trades) > 5:
 	print("\n... (remaining trades omitted for brevity)")
