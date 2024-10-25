@@ -139,3 +139,9 @@ class Orderbook(object):
 	
 	def __len__(self):
 		return len(self.asks) + len(self.bids)
+
+	def add_order(self, order):
+		"""
+		Add a new order to the orderbook and process it
+		"""
+		self.processOrder(order)

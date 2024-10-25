@@ -5,6 +5,7 @@ from eth_utils import to_checksum_address
 from web3 import Web3
 import time
 import json
+import random
 
 # Add the parent directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -41,32 +42,28 @@ def create_settlement_ready_trades(trades, cash_token, security_token, fee_recip
     settlement_ready_trades = []
     
     for trade in trades:
-        cash_amount = int(trade.price * trade.size)  # Convert to integer
-        security_amount = int(trade.size)  # Convert to integer
+        cash_amount = int(trade.price * trade.size)
+        security_amount = int(trade.size)
         
-        # Determine makerIsBuyer based on incoming side
-        maker_is_buyer = trade.side != Side.BUY
+        maker_is_buyer = trade.buyer_id < trade.seller_id
         
-        # Set maker and taker based on makerIsBuyer
         if maker_is_buyer:
-            maker = to_checksum_address(trade.buyer_id)
-            taker = to_checksum_address(trade.seller_id)
-        else:
-            maker = to_checksum_address(trade.seller_id)
-            taker = to_checksum_address(trade.buyer_id)
-        
-        # Set maker and taker tokens based on makerIsBuyer
-        if maker_is_buyer:
-            maker_token = cash_token
-            taker_token = security_token
-            maker_amount = cash_amount
-            taker_amount = security_amount
-        else:
-            maker_token = security_token
-            taker_token = cash_token
+            maker = Web3.to_checksum_address(trade.buyer_id)
+            taker = Web3.to_checksum_address(trade.seller_id)
+            maker_token = Web3.to_checksum_address(security_token)
+            taker_token = Web3.to_checksum_address(cash_token)
             maker_amount = security_amount
             taker_amount = cash_amount
-        
+        else:
+            maker = Web3.to_checksum_address(trade.seller_id)
+            taker = Web3.to_checksum_address(trade.buyer_id)
+            maker_token = Web3.to_checksum_address(cash_token)
+            taker_token = Web3.to_checksum_address(security_token)
+            maker_amount = cash_amount
+            taker_amount = security_amount
+
+        salt = Web3.keccak(text=f"{maker}{taker}{time.time()}{random.random()}").hex()
+
         settlement_ready_trade = SettlementReadyTrade(
             makerToken=maker_token,
             takerToken=taker_token,
@@ -74,19 +71,19 @@ def create_settlement_ready_trades(trades, cash_token, security_token, fee_recip
             takerAmount=taker_amount,
             maker=maker,
             taker=taker,
-            sender=Web3.to_checksum_address('0x0000000000000000000000000000000000000000'),  # Zero address
-            feeRecipient=to_checksum_address(fee_recipient),
-            pool=Web3.to_bytes(hexstr='0x0000000000000000000000000000000000000000000000000000000000000000'),  # Zero bytes32
-            expiration=int(time.time()) + 3600,  # Current time + 1 hour
-            salt=Web3.to_int(Web3.keccak(text=str(time.time()))),  # Unique salt based on current time
+            sender=taker,
+            feeRecipient=Web3.to_checksum_address(fee_recipient),
+            pool=Web3.to_checksum_address('0x0000000000000000000000000000000000000000'),
+            expiration=Web3.to_hex(int(time.time()) + 3600),
+            salt=salt,
             makerIsBuyer=maker_is_buyer,
-            signature_type=trade.signature_type,
-            buyer_v=trade.v_buyer,
-            buyer_r=trade.r_buyer,
-            buyer_s=trade.s_buyer,
-            seller_v=trade.v_seller,
-            seller_r=trade.r_seller,
-            seller_s=trade.s_seller
+            signature_type="EIP-712",  # Assuming EIP-712 signatures
+            buyer_v=0,  # Placeholder, adjust if you have this information
+            buyer_r=b'',  # Placeholder, adjust if you have this information
+            buyer_s=b'',  # Placeholder, adjust if you have this information
+            seller_v=0,  # Placeholder, adjust if you have this information
+            seller_r=b'',  # Placeholder, adjust if you have this information
+            seller_s=b''  # Placeholder, adjust if you have this information
         )
         
         settlement_ready_trades.append(settlement_ready_trade)
@@ -121,17 +118,14 @@ def serialize_settlement_ready_trades(settlement_ready_trades):
 
 # Example usage:
 if __name__ == "__main__":
-    orderbook = Orderbook()
-    # ... populate orderbook with orders and execute trades ...
+    # Assume we have a list of trades instead of an Orderbook
+    trades = []  # You would populate this with actual Trade objects
 
     # Set Ethereum addresses for tokens and fee recipient
     cash_token = "0x1234567890123456789012345678901234567890"  # Example Ethereum address for cash token
     security_token = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"  # Example Ethereum address for security token
     fee_recipient = "0xfedc000000000000000000000000000000000000"  # Example Ethereum address for fee recipient
 
-    # Assume we have a list of trades instead of an Orderbook
-    trades = []  # You would populate this with actual Trade objects
-    
     settlement_ready_trades = create_settlement_ready_trades(trades, cash_token, security_token, fee_recipient)
 
     # Serialize the settlement ready trades
