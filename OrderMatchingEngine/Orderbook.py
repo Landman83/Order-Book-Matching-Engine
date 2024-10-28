@@ -58,7 +58,7 @@ class Orderbook(object):
 		# while there are orders and the orders requirements are matched
 		while whileClause():
 			bookOrder = None
-			if incomingOrder.side==Side.BUY:
+			if incomingOrder.side == Side.BUY:
 				bookOrder = self.asks.pop(0)
 				buyer_id = incomingOrder.trader_id
 				seller_id = bookOrder.trader_id
@@ -75,7 +75,7 @@ class Orderbook(object):
 				volume = incomingOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
+				trade = Trade(bookOrder.order_id, incomingOrder.order_id,
                               bookOrder.price, volume, buyer_id, seller_id,
                               incomingOrder.signature_type,
                               v_buyer, r_buyer, s_buyer,
@@ -87,7 +87,7 @@ class Orderbook(object):
 				volume = bookOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
+				trade = Trade(bookOrder.order_id, incomingOrder.order_id,
                               bookOrder.price, volume, buyer_id, seller_id,
                               incomingOrder.signature_type,
                               v_buyer, r_buyer, s_buyer,
@@ -98,14 +98,14 @@ class Orderbook(object):
 				volume = incomingOrder.remainingToFill
 				incomingOrder.remainingToFill -= volume
 				bookOrder.remainingToFill -= volume
-				trade = Trade(incomingOrder.order_id, bookOrder.order_id, incomingOrder.side,
+				trade = Trade(bookOrder.order_id, incomingOrder.order_id,
                               bookOrder.price, volume, buyer_id, seller_id,
                               incomingOrder.signature_type,
                               v_buyer, r_buyer, s_buyer,
                               v_seller, r_seller, s_seller)
 				self.trades.append(trade)
 
-				if bookOrder.side==Side.SELL:
+				if bookOrder.side == Side.SELL:
 					self.asks.add(bookOrder)
 				else:
 					self.bids.add(bookOrder)

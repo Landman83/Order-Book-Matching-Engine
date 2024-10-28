@@ -9,25 +9,24 @@ class Trade(object):
 
 	A trade object
 	"""
-	def __init__(self, incoming_order_id, book_order_id, incoming_side, price, size, buyer_id, seller_id,
-				 signature_type, v_buyer, r_buyer, s_buyer, v_seller, r_seller, s_seller):
-		self.incoming_order_id = incoming_order_id
-		self.book_order_id = book_order_id
-		self.incoming_side = incoming_side
+	def __init__(self, maker_order_id, taker_order_id, price, size, buyer_id, seller_id,
+				 signature_type, v_maker, r_maker, s_maker, v_taker, r_taker, s_taker):
+		self.maker_order_id = maker_order_id
+		self.taker_order_id = taker_order_id
 		self.price = price
 		self.size = size
 		self.buyer_id = buyer_id
 		self.seller_id = seller_id
 		self.signature_type = signature_type
-		self.v_buyer = v_buyer
-		self.r_buyer = r_buyer
-		self.s_buyer = s_buyer
-		self.v_seller = v_seller
-		self.r_seller = r_seller
-		self.s_seller = s_seller
+		self.v_maker = v_maker
+		self.r_maker = r_maker
+		self.s_maker = s_maker
+		self.v_taker = v_taker
+		self.r_taker = r_taker
+		self.s_taker = s_taker
 
 	def __repr__(self):
-		return (f"Trade: Incoming Order ID: {self.incoming_order_id}, Book Order ID: {self.book_order_id}, "
-				f"Incoming Side: {self.incoming_side}, Price: {self.price}, Size: {self.size}, "
+		return (f"Trade: Maker Order ID: {self.maker_order_id}, Taker Order ID: {self.taker_order_id}, "
+				f"Price: {self.price}, Size: {self.size}, "
 				f"Buyer ID: {self.buyer_id}, Seller ID: {self.seller_id}, "
 				f"Signature Type: {self.signature_type}")

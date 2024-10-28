@@ -42,23 +42,21 @@ class CancelOrder(Order):
 
 
 class MarketOrder(Order):
-    def __init__(self, order_id: int, side: Side, size: int):
-        super().__init__(order_id, side, None, size)
+    def __init__(self, order_id: int, side: Side, size: int, trader_id=None, signature_type='EIP-712', v=None, r=None, s=None):
+        super().__init__(order_id, side, None, size, trader_id, signature_type, v, r, s)
         self.side = side
         self.size = self.remainingToFill = size
     
     def __repr__(self):
         return "Market Order: {0} {1} units.".format(
             "BUY" if self.side == Side.BUY else "SELL",
-            self.RemainingToFill)
-
+            self.remainingToFill)
 
 
 class LimitOrder(MarketOrder):
-    def __init__(self, order_id: int, side: Side, size: int, price: int, trader_id=None):
-        super().__init__(order_id, side, size)
+    def __init__(self, order_id: int, side: Side, size: int, price: int, trader_id=None, signature_type='EIP-712', v=None, r=None, s=None):
+        super().__init__(order_id, side, size, trader_id, signature_type, v, r, s)
         self.price = price
-        self.trader_id = trader_id  # Add this line
     
     def __lt__(self, other):
         if self.price != other.price:
@@ -66,12 +64,10 @@ class LimitOrder(MarketOrder):
                 return self.price > other.price
             else:
                 return self.price < other.price
-
         elif self.time != other.time:
              return self.time < other.time
-
         elif self.size != other.size:
-            self.size < other.size
+            return self.size < other.size
 
     def __repr__(self):
         return 'Limit Order: {0} {1} units at {2}.'.format(
